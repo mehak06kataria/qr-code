@@ -1,8 +1,26 @@
-from PIL import Image, ImageOps, ImageChops
-from PIL import ImageDraw
-
 import numpy as np
+from PIL import Image, ImageChops, ImageDraw, ImageOps
 
+import pyqrcode
+
+
+def generate_qr(qr_url,version):
+    url = pyqrcode.create(qr_url, version=version)
+    url.png('qr_url.png', scale=8)
+    size = url.get_png_size(scale=8)
+    return size
+
+def create_smiley_dp():
+    image = Image.new('I', (25, 25), 'white')
+    draw = ImageDraw.Draw(image)
+    draw.ellipse((0, 0, 25, 25), 'black')
+    draw.ellipse((25 / 3.6, 20 / 3.6, 35 / 3.6, 30 / 3.6), 'white')
+    draw.ellipse((50 / 3.6, 20 / 3.6, 60 / 3.6, 30 / 3.6), 'white')
+    draw.arc((20 / 3.6, 40 / 3.6, 70 / 3.6, 70 / 3.6), 0, 180, fill='white')
+    fp = open('smiley.png', 'wb')
+    image.save(fp)
+    smiley_size = image.size
+    return image, smiley_size
 
 def crop_to_circle(im):
     bigsize = (im.size[0] * 3, im.size[1] * 3)
@@ -12,77 +30,71 @@ def crop_to_circle(im):
     mask = ImageChops.darker(mask, im.split()[-1])
     im.putalpha(mask)
 
-#smiley detection pattern
-image = Image.new('I',(25,25),'white')
-draw = ImageDraw.Draw(image)
-draw.ellipse((0,0,25,25),'black')
-draw.ellipse((25/3.6,20/3.6,35/3.6,30/3.6),'white')
-draw.ellipse((50/3.6,20/3.6,60/3.6,30/3.6),'white')
-draw.arc((20/3.6,40/3.6,70/3.6,70/3.6), 0, 180, fill = 'white')
-fp = open('smiley.png','wb')
-image.save(fp)
+def flip_image_horizontally(image):
+    im_flipped_right = image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT)
+    fp = open('smiley-horizontal-mirror.png', 'wb')
+    im_flipped_right.save(fp)
+    return im_flipped_right
 
-#image = Image.open("Downloads/rippling_dp.png")
+def flip_image_vertically(image):
+    im_flipped_bottom = image.transpose(method=Image.Transpose.FLIP_TOP_BOTTOM)
+    fp = open('smiley-vertical-mirror.png', 'wb')
+    im_flipped_bottom.save(fp)
+    return im_flipped_bottom
 
-im_flipped_right = image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT)
-fp = open('smiley-horizontal-mirror.png','wb')
-im_flipped_right.save(fp)
+def modify_qr():
+    #open existing qr code
+    img1 = Image.open("qr_url.png")
+    image,smiley_size = create_smiley_dp()
+    #open smiley detection pattern
+    img2 = Image.open("smiley.png")
+    flip_image_horizontally(image)
+    img3 = Image.open("smiley-horizontal-mirror.png")
+    flip_image_vertically(image)
+    img4 = Image.open("smiley-vertical-mirror.png")
 
-im_flipped_bottom = image.transpose(method=Image.Transpose.FLIP_TOP_BOTTOM)
-fp = open('smiley-vertical-mirror.png','wb')
-im_flipped_bottom.save(fp)
+    #resizing the images to be placed at detection patterns
+    img2 = img2.resize(smiley_size)
+    img3 = img3.resize(smiley_size)
+    img4 = img4.resize(smiley_size)
+
+    size = generate_qr(qr_url,version)
+
+    #pasting the modifed images at the detection patterns
+    Image.Image.paste(img1, img2, (47, 47))
+    Image.Image.paste(img1, img3, (size-47-smiley_size[0], 47))
+    Image.Image.paste(img1, img4, (47, size-47-smiley_size[0]))
+
+    #savinh the modified qr code
+    fp = open('new-qr.png', 'wb')
+    img1.save(fp)
+    img_new = Image.open("new-qr.png").convert("L")
+
+    img_new = ImageOps.colorize(img_new, black="black", white="white")
+
+    return img_new
+
+def centre_image_resizing(img_new, centre_image,resize_factor):
+    centre_image_size = resize_factor
+    my_img = Image.open(centre_image).convert('RGBA')
+    crop_to_circle(my_img)
+    my_img = my_img.resize((resize_factor, resize_factor))
+    fp = open('cropped.png', 'wb')
+    my_img.save(fp)
+    my_img = Image.open('cropped.png')
+
+    size = generate_qr(qr_url,version)
+    mask = Image.fromarray(np.uint8(255 * (np.random.rand(100, 100) > 0)))
+    Image.Image.paste(img_new, my_img, (int(size/2-resize_factor/2), int(size/2-resize_factor/2)), mask)
+
+    return centre_image_size
 
 qr_url = input("Enter url to generate QR code : ")
-
-import pyqrcode
-url = pyqrcode.create(qr_url, version = 15)
-url.png('qr_url.png', scale=8)
-
-#print(url.get_png_size())
-
-img1 = Image.open("qr_url.png")
-img2 = Image.open("smiley.png")
-#img2 = Image.open("Downloads/rippling_dp.png")
-img3 = Image.open("smiley-horizontal-mirror.png")
-img4 = Image.open("smiley-vertical-mirror.png")
-
-print(img1.size)
-
-img2 = img2.resize((25,25))
-img3 = img3.resize((25,25))
-img4 = img4.resize((25,25))
-Image.Image.paste(img1, img2, (47,47))
-Image.Image.paste(img1, img3, (608,47))
-Image.Image.paste(img1, img4, (47,608))
-
-fp = open('new-qr.png','wb')
-img1.save(fp)
-img_new = Image.open("new-qr.png").convert("L")
-
-img_new = ImageOps.colorize(img_new, black="black", white="white")
-
-#my_img = Image.open("Downloads/Snapchat-1826503189 (1).jpg")
-#fp = open('my-img.jpg','wb')
-#my_img.save(fp)
-
+version = input("Enter desired version to generate QR code : ")
+version = int(version)
+generate_qr(qr_url,version)
+img_new = modify_qr()
 centre_image = input("Enter location of the image you want to place at centre of the url : ")
-
-#my_img = Image.open("Downloads/Snapchat-1826503189 (1).jpg").convert('RGBA')
-my_img = Image.open(centre_image).convert('RGBA')
-#my_img.show()
-#my_img = my_img.resize((50,50))
-crop_to_circle(my_img)
-my_img = my_img.resize((100,100))
-fp = open('cropped.png','wb')
-my_img.save(fp)
-my_img = Image.open('cropped.png')
-
-#my_img.show()
-
-mask = Image.fromarray(np.uint8(255*(np.random.rand(100, 100) > 0)))
-Image.Image.paste(img_new, my_img,(280,280),mask)
-
-#print(img_new.size)
+centre_image_resizing(img_new,centre_image,100)
 
 img_new.show()
-
