@@ -3,6 +3,8 @@ from PIL import Image, ImageChops, ImageDraw, ImageOps
 
 import pyqrcode
 
+TEMP_DIR_PATH="tmp"
+
 class FancyQR(object):
     def __init__(self, qr_url, version):
         self.size = None
@@ -11,7 +13,7 @@ class FancyQR(object):
 
     def generate_qr(self):
         url = pyqrcode.create(self.qr_url, version=self.version)
-        url.png('qr_url.png', scale=8)
+        url.png(f'{TEMP_DIR_PATH}/qr_url.png', scale=8)
         size = url.get_png_size(scale=8)
         self.size = size
 
@@ -22,7 +24,7 @@ class FancyQR(object):
         draw.ellipse((25 / 3.6, 20 / 3.6, 35 / 3.6, 30 / 3.6), 'white')
         draw.ellipse((50 / 3.6, 20 / 3.6, 60 / 3.6, 30 / 3.6), 'white')
         draw.arc((20 / 3.6, 40 / 3.6, 70 / 3.6, 70 / 3.6), 0, 180, fill='white')
-        fp = open('smiley.png', 'wb')
+        fp = open(f'{TEMP_DIR_PATH}/smiley.png', 'wb')
         image.save(fp)
         smiley_size = image.size
         return image, smiley_size
@@ -37,26 +39,26 @@ class FancyQR(object):
 
     def flip_image_horizontally(self, image):
         im_flipped_right = image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT)
-        fp = open('smiley-horizontal-mirror.png', 'wb')
+        fp = open(f"{TEMP_DIR_PATH}/smiley-horizontal-mirror.png", 'wb')
         im_flipped_right.save(fp)
         return im_flipped_right
 
     def flip_image_vertically(self, image):
         im_flipped_bottom = image.transpose(method=Image.Transpose.FLIP_TOP_BOTTOM)
-        fp = open('smiley-vertical-mirror.png', 'wb')
+        fp = open(f"{TEMP_DIR_PATH}/smiley-vertical-mirror.png", 'wb')
         im_flipped_bottom.save(fp)
         return im_flipped_bottom
 
     def modify_qr(self):
         #open existing qr code
-        img1 = Image.open("qr_url.png")
+        img1 = Image.open(f"{TEMP_DIR_PATH}/qr_url.png")
         image,smiley_size = self.create_smiley_dp()
         #open smiley detection pattern
-        img2 = Image.open("smiley.png")
+        img2 = Image.open(f"{TEMP_DIR_PATH}/smiley.png")
         self.flip_image_horizontally(image)
-        img3 = Image.open("smiley-horizontal-mirror.png")
+        img3 = Image.open(f"{TEMP_DIR_PATH}/smiley-horizontal-mirror.png")
         self.flip_image_vertically(image)
-        img4 = Image.open("smiley-vertical-mirror.png")
+        img4 = Image.open(f"{TEMP_DIR_PATH}/smiley-vertical-mirror.png")
 
         #resizing the images to be placed at detection patterns
         img2 = img2.resize(smiley_size)
@@ -82,9 +84,9 @@ class FancyQR(object):
         my_img = Image.open(centre_image).convert('RGBA')
         self.crop_to_circle(my_img)
         my_img = my_img.resize((resize_factor, resize_factor))
-        fp = open('cropped.png', 'wb')
+        fp = open(f"{TEMP_DIR_PATH}/cropped.png", 'wb')
         my_img.save(fp)
-        my_img = Image.open('cropped.png')
+        my_img = Image.open(f"{TEMP_DIR_PATH}/cropped.png")
 
         mask = Image.fromarray(np.uint8(255 * (np.random.rand(100, 100) > 0)))
         Image.Image.paste(img_new, my_img, (int(self.size/2-resize_factor/2), int(self.size/2-resize_factor/2)), mask)
