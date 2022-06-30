@@ -123,11 +123,15 @@ def download_file(url, name):
 
 
 if __name__ == "__main__":
-    text = os.getenv("DATA", input("Enter text to generate QR code: "))
-    version = os.getenv("VERSION", int(input("Enter desired version to generate QR code: ")))
+    # input("Enter text to generate QR code: ")
+    text = os.getenv("DATA")
+    # int(input("Enter desired version to generate QR code: "))
+    version = int(os.getenv("VERSION"))
 
-    logo_image_url = os.getenv("LOGO_IMAGE", input("Enter file location of the logo image: "))
-    centre_image_url = os.getenv("IMG_LOCATION", input("Enter file location of the image you want to place at centre of the url: "))
+    # input("Enter file location of the logo image: ")
+    logo_image_url = os.getenv("LOGO_IMAGE")
+    # input("Enter file location of the image you want to place at centre of the url: ")
+    centre_image_url = os.getenv("IMG_LOCATION")
 
     # Download the images
     logo_image = download_file(logo_image_url, "logo_image")
