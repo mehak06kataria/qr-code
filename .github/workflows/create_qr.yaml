@@ -50,3 +50,10 @@ jobs:
           export PATH="$VIRTUAL_ENV/bin:$PATH"
           pip install -r requirements.txt
           python base_qr_model.py
+
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: my-artifact
+          path: final.png
+          retention-days: 5

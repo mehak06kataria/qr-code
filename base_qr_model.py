@@ -90,20 +90,18 @@ class FancyQR(object):
 
         return img_new
 
-    def centre_image_resizing(self, img_new, centre_image, resize_factor):
+    def centre_image_resizing(self, img_new, centre_image_path, logo_image_path, resize_factor):
         centre_image_size = resize_factor
-        my_img = Image.open(centre_image).convert('RGBA')
+        logo_image_size = resize_factor
+
+        my_img = Image.open(centre_image_path).convert('RGBA')
+        logo_img = Image.open(logo_image_path).convert('RGBA')
+
         self.crop_to_circle(my_img)
+
         my_img = my_img.resize((resize_factor, resize_factor))
+        logo_img = logo_img.resize((resize_factor, resize_factor))
 
-        fp = open(f"{TEMP_DIR_PATH}/cropped.png", 'wb')
-        my_img.save(fp)
-        my_img = Image.open(f"{TEMP_DIR_PATH}/cropped.png")
-
-
-        fp = open(f"{TEMP_DIR_PATH}/rippling_logo.png", 'wb')
-        logo_img.save(fp)
-        logo_img = Image.open(f"{TEMP_DIR_PATH}/rippling_logo.png")
 
         mask = Image.fromarray(np.uint8(255 * (np.random.rand(100, 100) > 0)))
         Image.Image.paste(img_new, logo_img,
@@ -135,8 +133,7 @@ if __name__ == "__main__":
 
     # Download the images
     logo_image = download_file(logo_image_url, "logo_image")
-    centre_image = download_file(logo_image_url, "centre_image")
-
+    centre_image = download_file(centre_image_url, "centre_image")
 
     my_qr = FancyQR(text, version)
     my_qr.generate_qr()
@@ -144,12 +141,4 @@ if __name__ == "__main__":
 
     my_qr.centre_image_resizing(img_new, centre_image, logo_image, 100)
 
-    centre_image = input("Enter location of the image you want to place at centre of the url: ")
-    my_qr = FancyQR(text, version)
-    my_qr.generate_qr()
-    img_new = my_qr.modify_qr()
-    
-    my_qr.centre_image_resizing(img_new, centre_image, 100)
-
-
-    img_new.show()
+    img_new.save(open('final.png', 'wb'))
