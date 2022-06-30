@@ -1,8 +1,5 @@
 name: Create Fancy QR Code
 
-env:
-  DEPLOYMENT_SCRIPTS_VERSION: "1.3.37"
-
 on:
   workflow_dispatch:
     inputs:
@@ -38,9 +35,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Set up Python 3.9.5
+        id: install_python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9.5
+
       - name: Create Fancy QR
         id: create_fancy_qr_code
         run: |
           VIRTUAL_ENV="$(pwd)/.venv"
+          mkdir -p $VIRTUAL_ENV
+          python -m venv $VIRTUAL_ENV
           export PATH="$VIRTUAL_ENV/bin:$PATH"
-          python -m base_qr_model.py
+          pip install -r requirements.txt
+          python base_qr_model.py
