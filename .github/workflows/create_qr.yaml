@@ -1,8 +1,5 @@
 name: Create Fancy QR Code
 
-env:
-  DEPLOYMENT_SCRIPTS_VERSION: "1.3.37"
-
 on:
   workflow_dispatch:
     inputs:
@@ -14,7 +11,7 @@ on:
         description: 'enter version of qr code'
         type: int
         required: true
-      logo_location:
+      logo_image:
         description: 'enter file location of logo'
         type: string
         required: true
@@ -29,20 +26,34 @@ jobs:
     name: Create fancy qr-code
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DATA: ${{ inputs.data }}
+      VERSION: ${{ inputs.version }}
+      LOGO_IMAGE: ${{ inputs.logo_image }}
+      IMG_LOCATION: ${{ inputs.img_location }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Set up Python 3.9.5
+        id: install_python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9.5
+
       - name: Create Fancy QR
         id: create_fancy_qr_code
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          data: ${{ inputs.data }}
-          version: ${{ inputs.version }}
-          logo_location: ${{ inputs.logo_location }}
-          img_location: ${{ inputs.img_location }}
         run: |
           VIRTUAL_ENV="$(pwd)/.venv"
+          mkdir -p $VIRTUAL_ENV
+          python -m venv $VIRTUAL_ENV
           export PATH="$VIRTUAL_ENV/bin:$PATH"
-          python -m base_qr_model.py
+          pip install -r requirements.txt
+          python base_qr_model.py
+
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: my-artifact
+          path: final.png
+          retention-days: 5
