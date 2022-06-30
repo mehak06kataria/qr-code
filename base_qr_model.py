@@ -1,7 +1,9 @@
 import numpy as np
+import os
 from PIL import Image, ImageChops, ImageDraw, ImageOps
 
 import pyqrcode
+import requests
 
 
 TEMP_DIR_PATH = "tmp"
@@ -112,20 +114,26 @@ class FancyQR(object):
         return centre_image_size
 
 
-
-        mask = Image.fromarray(np.uint8(255 * (np.random.rand(100, 100) > 0)))
-        Image.Image.paste(img_new, my_img, (int(self.size/2-resize_factor/2), int(self.size/2-resize_factor/2)), mask)
-
-        return centre_image_size
+def download_file(url, name):
+    r = requests.get(url, allow_redirects=True)
+    extension = url.split(".").pop()
+    file_path = f"{TEMP_DIR_PATH}/{name}.{extension}"
+    open(file_path, 'wb').write(r.content)
+    return file_path
 
 
 if __name__ == "__main__":
-    text = input("Enter text to generate QR code: ")
-    version = input("Enter desired version to generate QR code: ")
-    version = int(version)
+    text = os.getenv("DATA", input("Enter text to generate QR code: "))
+    version = os.getenv("VERSION", int(input("Enter desired version to generate QR code: ")))
 
-    logo_image = input("Enter file location of the logo image: ")
-    centre_image = input("Enter file location of the image you want to place at centre of the url: ")
+    logo_image_url = os.getenv("LOGO_IMAGE", input("Enter file location of the logo image: "))
+    centre_image_url = os.getenv("IMG_LOCATION", input("Enter file location of the image you want to place at centre of the url: "))
+
+    # Download the images
+    logo_image = download_file(logo_image_url, "logo_image")
+    centre_image = download_file(logo_image_url, "centre_image")
+
+
     my_qr = FancyQR(text, version)
     my_qr.generate_qr()
     img_new = my_qr.modify_qr()
