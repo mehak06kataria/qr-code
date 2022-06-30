@@ -1,0 +1,48 @@
+name: Create Fancy QR Code
+
+env:
+  DEPLOYMENT_SCRIPTS_VERSION: "1.3.37"
+
+on:
+  workflow_dispatch:
+    inputs:
+      data:
+        description: 'data to generate qr code'
+        type: string
+        required: true
+      version:
+        description: 'enter version of qr code'
+        type: int
+        required: true
+      logo_location:
+        description: 'enter file location of logo'
+        type: string
+        required: true
+      img_location:
+        description: 'enter file location of center image'
+        type: string
+        required: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    name: Create fancy qr-code
+    env:
+      GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Create Fancy QR
+          id: create_fancy_qr_code
+          env:
+            GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+          with:
+            data: ${{ inputs.data }}
+            version: ${{ inputs.version }}
+            logo_location: ${{ inputs.logo_location }}
+            img_location: ${{ inputs.img_location }}
+          run: |
+            VIRTUAL_ENV="$(pwd)/.venv"
+            export PATH="$VIRTUAL_ENV/bin:$PATH"
+            python -m base_qr_model.py
