@@ -20,7 +20,15 @@ jobs:
         with:
           python-version: 3.9.5
       - name: Install dependencies
-        run: pip install black
+        run: |
+          pip install black
+          pip install flake8
+          pip install pylint
+          pip install isort
       - name: Run Check
-        run: black .
+        run: |
+          black .
+          flake8
+          find . -type f -name "*.py" | xargs pylint  #finds all files ending in .py and runs pylint on them
+          isort .
       
