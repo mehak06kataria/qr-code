@@ -25,9 +25,9 @@ class FancyQR(object):
         image = Image.new('I', (25, 25), 'white')
         draw = ImageDraw.Draw(image)
         draw.ellipse((0, 0, 25, 25), 'black')
-        draw.ellipse((25 / 3.6, 20 / 3.6, 35 / 3.6, 30 / 3.6), 'white')
-        draw.ellipse((50 / 3.6, 20 / 3.6, 60 / 3.6, 30 / 3.6), 'white')
-        draw.arc((20 / 3.6, 40 / 3.6, 70 / 3.6, 70 / 3.6), 0, 180, fill='white')
+        draw.ellipse((25/3.6, 20/3.6, 35/3.6, 30/3.6), 'white')
+        draw.ellipse((50/3.6, 20/3.6, 60/3.6, 30/3.6), 'white')
+        draw.arc((20/3.6, 40/3.6, 70/3.6, 70/3.6), 0, 180, fill='white')
         fp = open(f'{TEMP_DIR_PATH}/smiley.png', 'wb')
         image.save(fp)
         smiley_size = image.size
@@ -42,13 +42,17 @@ class FancyQR(object):
         im.putalpha(mask)
 
     def flip_image_horizontally(self, image):
-        im_flipped_right = image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT)
+        im_flipped_right = image.transpose(
+            method=Image.Transpose.FLIP_LEFT_RIGHT
+        )
         fp = open(f"{TEMP_DIR_PATH}/smiley-horizontal-mirror.png", 'wb')
         im_flipped_right.save(fp)
         return im_flipped_right
 
     def flip_image_vertically(self, image):
-        im_flipped_bottom = image.transpose(method=Image.Transpose.FLIP_TOP_BOTTOM)
+        im_flipped_bottom = image.transpose(
+            method=Image.Transpose.FLIP_TOP_BOTTOM
+        )
         fp = open(f"{TEMP_DIR_PATH}/smiley-vertical-mirror.png", 'wb')
         im_flipped_bottom.save(fp)
         return im_flipped_bottom
@@ -92,7 +96,7 @@ class FancyQR(object):
 
     def centre_image_resizing(self, img_new, centre_image_path, logo_image_path, resize_factor):
         centre_image_size = resize_factor
-        logo_image_size = resize_factor
+        _logo_image_size = resize_factor
 
         my_img = Image.open(centre_image_path).convert('RGBA')
         logo_img = Image.open(logo_image_path).convert('RGBA')
